@@ -1,0 +1,126 @@
+# Lab1: Summer Orienteering Pseudocode
+
+###FUNCTION read_image(image_file):
+    # Load the terrain image file
+    image_data = load_image(image_file)
+    RETURN image_data
+
+###FUNCTION read_elevation(elevation_file):
+    # Read the elevation data from the text file, ignoring the last 5 columns per row
+    elevation_data = []
+    FOR each line in elevation_file:
+        elevation_row = process_elevation_line(line) # Split and take first 400 values
+        elevation_data.append(elevation_row)
+    RETURN elevation_data
+
+FUNCTION read_control_points(path_file):
+    # Read the control points from the text file, storing the (x, y) coordinates
+    control_points = []
+    FOR each line in path_file:
+        x, y = parse_coordinates(line)
+        control_points.append((x, y))
+    RETURN control_points
+
+FUNCTION calculate_terrain_speed(color):
+    # Based on the terrain color, return a speed factor (lower values for slower terrain)
+    IF color == OPEN_LAND_COLOR:
+        RETURN speed_open_land
+    ELSE IF color == ROUGH_MEADOW_COLOR:
+        RETURN speed_rough_meadow
+    ELSE IF color == EASY_MOVEMENT_FOREST_COLOR:
+        RETURN speed_easy_movement_forest
+    # Add cases for all terrain types
+    # Return infinity for impassable terrain
+    RETURN speed
+
+FUNCTION calculate_distance(current, neighbor, elevation_data):
+    # Calculate 3D distance using terrain distance and elevation change
+    x1, y1 = current
+    x2, y2 = neighbor
+    delta_x = (x2 - x1) * 10.29  # Horizontal distance based on X scale
+    delta_y = (y2 - y1) * 7.55   # Vertical distance based on Y scale
+    delta_z = elevation_data[y2][x2] - elevation_data[y1][x1]  # Elevation difference
+    terrain_distance = sqrt(delta_x^2 + delta_y^2)
+    actual_distance = sqrt(terrain_distance^2 + delta_z^2)
+    RETURN actual_distance
+
+FUNCTION heuristic(current, goal):
+    # Heuristic for A* based on Euclidean distance in 3D space
+    x1, y1 = current
+    x2, y2 = goal
+    delta_x = (x2 - x1) * 10.29
+    delta_y = (y2 - y1) * 7.55
+    RETURN sqrt(delta_x^2 + delta_y^2)
+
+FUNCTION a_star_search(terrain_image, elevation_data, start, goal):
+    # A* search to find the shortest path between start and goal
+    open_set = PriorityQueue()
+    open_set.add(start, priority=0)
+    
+    came_from = {}
+    g_score = default_dict(INF)
+    g_score[start] = 0
+    
+    f_score = default_dict(INF)
+    f_score[start] = heuristic(start, goal)
+    
+    WHILE open_set is not empty:
+        current = open_set.get_lowest_priority()
+        
+        IF current == goal:
+            RETURN reconstruct_path(came_from, current)
+        
+        FOR each neighbor of current:
+            tentative_g_score = g_score[current] + calculate_distance(current, neighbor, elevation_data)
+            
+            IF tentative_g_score < g_score[neighbor]:
+                came_from[neighbor] = current
+                g_score[neighbor] = tentative_g_score
+                f_score[neighbor] = g_score[neighbor] + heuristic(neighbor, goal)
+                IF neighbor not in open_set:
+                    open_set.add(neighbor, priority=f_score[neighbor])
+    
+    RETURN FAILURE  # No valid path found
+
+FUNCTION reconstruct_path(came_from, current):
+    # Reconstruct the path by backtracking from the goal
+    total_path = [current]
+    WHILE current in came_from:
+        current = came_from[current]
+        total_path.append(current)
+    RETURN reverse(total_path)
+
+FUNCTION draw_path_on_image(path, terrain_image, output_image_file):
+    # Modify the terrain image to draw the path in purple (#763fe7)
+    FOR each pixel in path:
+        x, y = pixel
+        terrain_image[y][x] = PURPLE_COLOR
+    save_image(output_image_file, terrain_image)
+
+MAIN FUNCTION:
+    # Parse command-line arguments
+    terrain_image_file = ARG[1]
+    elevation_file = ARG[2]
+    control_points_file = ARG[3]
+    output_image_file = ARG[4]
+
+    # Read inputs
+    terrain_image = read_image(terrain_image_file)
+    elevation_data = read_elevation(elevation_file)
+    control_points = read_control_points(control_points_file)
+
+    total_path = []
+
+    # Perform A* search between consecutive control points
+    FOR i from 0 to len(control_points) - 1:
+        start = control_points[i]
+        goal = control_points[i+1]
+        path_segment = a_star_search(terrain_image, elevation_data, start, goal)
+        total_path.extend(path_segment)
+
+    # Draw the path on the image and save it
+    draw_path_on_image(total_path, terrain_image, output_image_file)
+
+    # Calculate and print the total path length
+    total_distance = calculate_total_distance(total_path, elevation_data)
+    PRINT total_distance

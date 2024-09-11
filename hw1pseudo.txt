@@ -1,0 +1,56 @@
+###function load_dictionary(dict_file):
+    words_set = set()
+    open dict_file and for each word in file:
+        clean and add it to words_set
+    return words_set
+
+###function one_letter_diff(word1, word2):
+    count = 0
+    for each letter in word1 and word2:
+        if letters differ:
+            increment count
+        if count > 1:
+            return false
+    return true if count == 1
+
+###function bfs(start_word, target_word, dictionary):
+    queue = [(start_word, [start_word])]  # queue of tuples (current_word, path_so_far)
+    visited = set()
+    visited.add(start_word)
+
+    while queue is not empty:
+        current_word, path = dequeue queue
+        if current_word == target_word:
+            return path
+        
+        for each word in dictionary:
+            if word not in visited and one_letter_diff(current_word, word):
+                enqueue (word, path + [word]) to queue
+                visited.add(word)
+    
+    return "No solution"
+
+# Main function
+function main(dict_file, start_word, target_word):
+    if len(start_word) != len(target_word):
+        return "No solution"
+
+    dictionary = load_dictionary(dict_file)
+    
+    if start_word not in dictionary or target_word not in dictionary:
+        return "No solution"
+    
+    solution_path = bfs(start_word, target_word, dictionary)
+    
+    if solution_path == "No solution":
+        print("No solution")
+    else:
+        for word in solution_path:
+            print(word)
+
+# Program entry point
+if __name__ == "__main__":
+    dict_file = sys.argv[1]
+    start_word = sys.argv[2]
+    target_word = sys.argv[3]
+    main(dict_file, start_word, target_word)
