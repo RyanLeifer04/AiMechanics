@@ -1,3 +1,4 @@
+#Ryan Leifer
 import sys
 from PIL import Image, ImageDraw
 import heapq
@@ -28,7 +29,7 @@ def read_elevation(elevation_file):
     elevation = []
     with open(elevation_file, 'r') as f:
         for line in f:
-            elevation_row = list(map(float, line.split()[:395]))  # Ignore extra 5 values
+            elevation_row = list(map(float, line.split()[:395]))
             elevation.append(elevation_row)
     return elevation
 
@@ -59,7 +60,7 @@ def astar(start, goal, terrain_data, elevation, image_width, image_height):
     def get_neighbors(pos):
         x, y = pos
         neighbors = []
-        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:  # 4-way neighbors
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             nx, ny = x + dx, y + dy
             if 0 <= nx < image_width and 0 <= ny < image_height:
                 neighbors.append((nx, ny))
@@ -98,7 +99,7 @@ def astar(start, goal, terrain_data, elevation, image_width, image_height):
 def draw_path(image, path):
     draw = ImageDraw.Draw(image)
     for (x, y) in path:
-        draw.point((x, y), fill=(118, 63, 231))  # Draw path in the required color
+        draw.point((x, y), fill=(118, 63, 231))
 
 # Main function
 def main():
@@ -114,11 +115,11 @@ def main():
         path = astar(start, goal, terrain_data, elevation, terrain_image.width, terrain_image.height)
         total_path.extend(path)
 
-    # Draw the full path and save the image
+
     draw_path(terrain_image, total_path)
     terrain_image.save(output_image)
 
-    # Calculate total path length and print it
+
     total_length = sum([cost(total_path[i], total_path[i + 1]) for i in range(len(total_path) - 1)])
     print(f"Total path length: {total_length} meters")
 
