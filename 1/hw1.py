@@ -19,18 +19,19 @@ def loadWords(filename):
 
 #BFS search through dictionary to find path, returns None is no path is found
 def search(word1, word2, dictionary):
-    
     visited = set(word1)
     visited.add(word1)
     currentWord = word1
     queue = [(word1,[word1])]
     while queue:
-        currentWord, path = queue.pop()
-        if currentWord == word2:
-            return path
+        currentWord, path = queue.pop(0)
         for i in range(len(word1)):
-            for a in "abcdefghijklmnopqrstuvwxyz":
+            for a in 'abcdefghijklmnopqrstuvwxyz':
                 next = currentWord[:i] + a + currentWord[i+1:]
+                
+                if currentWord == word2:
+                    return path
+                
                 if next in dictionary and next not in visited:
                     queue.append((next, path+[next]))
                     visited.add(next)
@@ -57,7 +58,6 @@ def main(dictFile, startWord, targetWord):
         for word in solutionPath:
             print(word)
 
-# Program entry point
 if __name__ == "__main__":
     dictFile = sys.argv[1]
     startWord = sys.argv[2]
